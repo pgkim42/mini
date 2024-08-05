@@ -19,20 +19,54 @@ public class test {
 
 	static int ORDER_NO = 1;
 
+	static int orderSearch() throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader("order.txt"));
+
+		String str;
+		int orderNo = 0;
+
+		while ((str = br.readLine()) != null) {
+
+			// 주문번호 word[0]
+			String[] words = str.split(",");
+
+			// 주문번호 찾기
+			String searchOrder = words[0];
+			String[] resultOrder = searchOrder.split(":");
+
+			orderNo = Integer.parseInt(resultOrder[1].trim());
+
+		}
+
+		br.close();
+
+		return orderNo;
+	}
+
 	public static void main(String[] args) throws IOException, ParseException {
 
-		Scanner sc = new Scanner(System.in);
+		// 주문번호 찾기
+		ORDER_NO = orderSearch() + 1;
 
-		Display(sc);
+		Scanner sc = new Scanner(System.in);
+		MenuPrint menuPrint = new MenuPrint();
+
+		menuPrint.Display(sc);
 
 		sc.close();
 
 	}
+}
 
-	static void Display(Scanner sc) throws IOException, ParseException {
+// 메뉴 출력 관련 클래스
+class MenuPrint {
+	// 메뉴 출력
+	void Display(Scanner sc) throws IOException, ParseException {
 
-		FileWriter fw = new FileWriter("order.txt");
+		FileWriter fw = new FileWriter("order.txt", true);
 		PrintWriter pw = new PrintWriter(fw);
+		OrderSystem orderSystem = new OrderSystem();
+		OrderPrint orderPrint = new OrderPrint();
 
 		int i = 0;
 
@@ -42,7 +76,7 @@ public class test {
 			System.out.println("3. 고객별 주문 이력 보기");
 			System.out.println("4. 특정날짜에 들어온 주문이력 보기");
 			System.out.println("5. 끝내기");
-//			System.out.print("옵션을 선택하세요: ");
+//				System.out.print("옵션을 선택하세요: ");
 
 			Boolean validInput = false;
 
@@ -64,16 +98,16 @@ public class test {
 			}
 
 			if (i == 1) {
-				Order(sc, pw);
+				orderSystem.Order(sc, pw);
 			}
 			if (i == 2) {
-				print();
+				orderPrint.print();
 			}
 			if (i == 3) {
-				printCustomer(sc);
+				orderPrint.printCustomer(sc);
 			}
 			if (i == 4) {
-				printDate(sc);
+				orderPrint.printDate(sc);
 			}
 			if (i == 5) {
 				System.out.println("프로그램을 종료합니다.");
@@ -84,8 +118,12 @@ public class test {
 		pw.close();
 
 	}
+}
 
-	static void Order(Scanner sc, PrintWriter pw) throws IOException {
+// 주문 관리
+class OrderSystem {
+	// 주문 생성
+	void Order(Scanner sc, PrintWriter pw) throws IOException {
 
 		String name;
 		String product;
@@ -149,14 +187,18 @@ public class test {
 		LocalDateTime curDateTime = LocalDateTime.now();
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 		String formatDate = curDateTime.format(formatter);
-		String str = String.format("주문번호: %d, 고객명: %s, 제품명: %s, 주문수량: %d, 가격: %d, 주문일시: %s", ORDER_NO++, name, product,
-				quantity, price, formatDate);
+		String str = String.format("주문번호: %d, 고객명: %s, 제품명: %s, 주문수량: %d, 가격: %d, 주문일시: %s", test.ORDER_NO++, name,
+				product, quantity, price, formatDate);
 
 		pw.println(str);
 		pw.flush();
 	}
+}
 
-	static void print() throws IOException {
+// 주문 출력 관련 클래스
+class OrderPrint {
+	// 전체 주문 출력
+	void print() throws IOException {
 
 		BufferedReader br = new BufferedReader(new FileReader("order.txt"));
 		String str;
@@ -171,7 +213,8 @@ public class test {
 
 	}
 
-	static void printCustomer(Scanner sc) throws IOException {
+	// 특정 손님 주문 출력
+	void printCustomer(Scanner sc) throws IOException {
 
 		String str; // br 넣을 문자열
 
@@ -195,12 +238,16 @@ public class test {
 			String searchName = words[1];
 			String[] resultName = searchName.split(":");
 
+			// 수량 찾기
+			String searchQuantity = words[3];
+			String[] resultQuantity = searchQuantity.split(":");
+
 			// 가격 찾기
 			String searchPrice = words[4];
 			String[] resultPrice = searchPrice.split(":");
 
 			if (resultName[1].trim().equals(name)) {
-				totalPrice += Integer.parseInt(resultPrice[1].trim());
+				totalPrice += (Integer.parseInt(resultPrice[1].trim()) * Integer.parseInt(resultQuantity[1].trim()));
 				totalOrder++;
 			}
 		}
@@ -211,7 +258,8 @@ public class test {
 		br.close();
 	}
 
-	static void printDate(Scanner sc) throws IOException, ParseException {
+	// 특정 날짜 주문 출력
+	void printDate(Scanner sc) throws IOException, ParseException {
 
 		String str; // br 넣을 문자열
 		BufferedReader br = new BufferedReader(new FileReader("order.txt"));
